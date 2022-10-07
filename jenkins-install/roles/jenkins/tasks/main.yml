@@ -1,0 +1,48 @@
+---
+- hosts: "*"
+  become: true
+  become_user: root
+  tasks:
+  - name: Download Jenkins repo apt URL for
+    apt_key:
+      url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
+      state: present
+    become: yes
+
+  - name: Ensure the repository is configured
+    apt_repository: 
+      repo: "deb https://pkg.jenkins.io/debian-stable binary/"
+      state: present
+    become: yes
+
+  - name: apt update
+    apt:
+      update_cache: yes      
+      state: latest
+
+  - name: Install java
+    apt:
+      name: openjdk-11-jdk
+      state: present
+
+  - name: Install jenkins
+    apt:
+      name: jenkins
+      state: latest
+
+  - name: daemon-reload to pick up config changes
+    ansible.builtin.systemd:
+      daemon_reload: yes
+
+  - name: Start jenkins
+    ansible.builtin.systemd:
+      name: jenkins
+      state: started
+  - name: ensure nginx is at the latest version
+    apt: 
+      name: nginx 
+      state: latest
+  - name: start nginx
+    service:
+      name: nginx
+      state: started
