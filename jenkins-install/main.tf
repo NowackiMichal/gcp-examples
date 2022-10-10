@@ -53,7 +53,7 @@ resource "google_compute_instance" "default" {
     # ssh-keys = "${var.user}:${tls_private_key.rsa_4096.public_key_openssh}"
   }
   provisioner "local-exec" {
-    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ${var.user} -i '${google_compute_address.static.address},' --private-key ${var.privatekeypath} -e 'pub_key=${var.publickeypath}' ./roles/jenkins/tasks/main.yml"
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ${var.user} -i '${google_compute_address.static.address},' --private-key ${var.privatekeypath} -e 'pub_key=${var.publickeypath}' ./playbook.yml"
   }
 }
 resource "google_compute_firewall" "ssh-rule" {
