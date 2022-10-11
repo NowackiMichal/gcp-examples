@@ -34,3 +34,11 @@
   ansible.builtin.systemd:
     name: jenkins
     state: started
+
+- name: Get init password Jenkins
+  shell: > 
+    cat /var/lib/jenkins/secrets/initialAdminPassword
+  changed_when: false
+  register: result
+- debug: 
+    var: result.stdout_lines

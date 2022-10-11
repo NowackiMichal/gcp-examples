@@ -32,11 +32,12 @@ resource "google_compute_instance" "default" {
     email  = var.email
     scopes = ["cloud-platform"]
   }
+
   provisioner "remote-exec" {
     inline = [
       "sudo apt-get update",
       "sudo apt-get install -y python3-pip python3-dev",
-    ]
+   ]
     connection {
       type        = "ssh"
       host        = google_compute_address.static.address
