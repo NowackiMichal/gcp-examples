@@ -1,0 +1,47 @@
+- name: creating users and groups and ssh connection
+  hosts: "*" #all is possible
+  become: yes
+  vars:
+    users:
+    - user1
+    - user2
+    - user3
+  tasks:
+  - name: "Create groups"
+    group:
+      name: "{{ item }}"
+    loop:
+      - group1
+      - group2
+  - name: "Create user 1 account and add user to group1"
+    user:
+      name: user1
+      state: present
+      group: group1
+  - name: Allow 'group1' to have passwordless sudo
+    lineinfile:
+      dest: /etc/sudoers
+      state: present
+      regexp: '^%group1'
+      line: '%group1 ALL=(ALL) NOPASSWD: ALL'
+  - name: "Create user2 and add user to group 2"
+    user:
+      name: user2
+      state: present
+      group: group2  
+  - name: "Create user3 and add user to group 2"
+    user:
+      name: user3
+      state: present
+      group: group2
+  - name: Allow 'group2' to have passwordless sudo
+    lineinfile:
+      dest: /etc/sudoers
+      state: present
+      regexp: '^%group2'
+      line: '%group2 ALL=(ALL) NOPASSWD: /bin/su'
+  - name: "Add authorized keys"
+    authorized_key:
+      user: "{{ item }}"
+      key: "{{ lookup('file', '../files/' + item + '.pub') }}"
+    with_items: "{{ users }}"
