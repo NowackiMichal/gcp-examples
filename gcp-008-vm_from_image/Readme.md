@@ -1,0 +1,1 @@
+Custom image from gcp-007-create_custom_image must be created first.
