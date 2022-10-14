@@ -42,3 +42,10 @@
   register: result
 - debug: 
     var: result.stdout_lines
+
+- name: Allow 'jenkins' to make change nginx index.html 
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%jenkins'
+    line: '%jenkins ALL=(ALL) NOPASSWD: /bin/cp'
