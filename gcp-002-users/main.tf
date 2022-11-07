@@ -1,18 +1,18 @@
 
 resource "google_compute_network" "vpc_network" {
   project                 = var.project_id
-  name                    = "vpc-network"
+  name                    = "my-vpc-network"
   auto_create_subnetworks = true
   mtu                     = 1460
 }
 
 resource "google_compute_instance" "default" {
-  name         = "test-vm1"
+  name         = "tooling-vm1"
   machine_type = "e2-medium"
 
   zone = var.zone
 
-  tags = ["demo-vm-instance"]
+  tags = ["tooling-vm-instance"]
 
   boot_disk {
     initialize_params {
@@ -44,32 +44,30 @@ resource "google_compute_instance" "default" {
       user        = var.user
       timeout     = "500s"
       private_key = file(var.privatekeypath)
-      # private_key = tls_private_key.rsa_4096.private_key_openssh
-    }
+     }
   }
   depends_on = [google_compute_firewall.ssh-rule]
 
  metadata = {
     ssh-keys = "${var.user}:${file(var.publickeypath)}"
-    # ssh-keys = "${var.user}:${tls_private_key.rsa_4096.public_key_openssh}"
   }
   provisioner "local-exec" {
     command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ${var.user} -i '${google_compute_address.static.address},' --private-key ${var.privatekeypath} -e 'pub_key=${var.publickeypath}' ./roles/common/tasks/main.yml"
   }
 }
 resource "google_compute_firewall" "ssh-rule" {
-  name    = "demo-ssh"
+  name    = "tooling-ssh"
   network = google_compute_network.vpc_network.name
   allow {
     protocol = "tcp"
     ports    = ["22", "8080"]
   }
-  target_tags   = ["demo-vm-instance"]
+  target_tags   = ["tooling-vm-instance"]
   source_ranges = ["0.0.0.0/0"]
 }
 # We create a public IP address for our google compute instance to utilize
 resource "google_compute_address" "static" {
-  name       = "vm-public-address"
+  name       = "tooling-vm-public-address"
   project    = var.project_id
   region     = var.region
   depends_on = [google_compute_firewall.ssh-rule]
