@@ -1,11 +1,11 @@
-**Task:**
+**Task:**  
 The goal of this task is to create a Storage Bucket archive.
 
-**Acceptance criteria:**
+**Acceptance criteria:**  
 Retention policy defined: storage class changes from standard to archive after the specified time.
 
-**Knowledge description:**
+**Knowledge description:**  
 Ensure archiving of storage services. 
 
-**Example of Artifacts:**
+**Example of Artifacts:**  
 - Configured archiving of the storage bucket.
