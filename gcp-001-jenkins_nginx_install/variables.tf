@@ -5,8 +5,8 @@ variable "region" {
 }
 variable "zone" {
   type        = string
-  default     = "europe-central2-c"
-  description = "europe-central2-c zone"
+  default     = "europe-central2-b"
+  description = "europe-central2-b zone"
 }
 variable "project_id" {
   type = string

@@ -62,6 +62,7 @@
   register: jenkinsAdminPass
 
 - debug: 
+<<<<<<< HEAD
     var: jenkinsAdminPass.stdout_lines
 
 - name: Install Required Jenkins Plugins
