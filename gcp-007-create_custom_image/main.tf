@@ -54,9 +54,15 @@ resource "google_compute_instance" "default" {
   depends_on = [google_compute_firewall.ssh-rule]
 
   metadata = {
-    # ssh-keys = "${var.user}:${file(var.publickeypath)}"
     foo = "bar"
   }
+  metadata_startup_script = <<-EOF
+    #!/bin/bash
+    apt-get update
+    apt-get install -y nginx
+    systemctl start nginx
+    systemctl enable nginx
+  EOF
 }
 
 resource "google_compute_machine_image" "image" {
