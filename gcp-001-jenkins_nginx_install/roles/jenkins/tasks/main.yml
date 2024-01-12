@@ -1,0 +1,119 @@
+---
+- name: Download Jenkins repo apt URL for
+  apt_key:
+    url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
+    state: present
+  become: yes
+
+- name: Ensure the repository is configured
+  apt_repository: 
+    repo: "deb https://pkg.jenkins.io/debian-stable binary/"
+    state: present
+  become: yes
+
+- name: apt update
+  apt:
+    update_cache: yes      
+    state: latest
+
+- name: Install java
+  apt:
+    name: openjdk-11-jdk
+    state: present
+
+- name: Install jenkins
+  apt:
+    name: jenkins
+    state: latest
+
+- name: Install Git
+  apt:
+    name: git
+    state: latest
+
+- name: Install unzip
+  apt:
+    name: unzip
+    state: latest
+
+- name: Add Jenkins user to root group
+  user:
+    name: jenkins
+    group: root
+    append: yes
+
+- name: daemon-reload to pick up config changes
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Start jenkins
+  ansible.builtin.systemd:
+    name: jenkins
+    state: started
+
+- name: Wait
+  pause:
+    seconds: "7"
+
+- name: Get init password Jenkins
+  shell: > 
+    cat /var/lib/jenkins/secrets/initialAdminPassword
+  changed_when: false
+  register: jenkinsAdminPass
+
+- debug: 
+    var: jenkinsAdminPass.stdout_lines
+
+- name: Install Required Jenkins Plugins
+  jenkins_plugin:
+    name: "{{ item }}"
+    state: present
+    url_username: admin
+    url_password: "{{ jenkinsAdminPass.stdout }}"
+    url: http://localhost:8080/
+  with_items: "{{ jenkins_plugins }}"
+  register: jenk_plugins
+  ignore_errors: yes
+
+- name: Restart Jenkins
+  service:
+    name: jenkins
+    state: restarted
+  when: jenk_plugins.changed == true
+
+- name: Wait
+  pause:
+    seconds: "21"
+
+- name: Enable Jenkins to run Sudo
+  lineinfile: 
+    path: /etc/sudoers
+    insertafter: '^root\s+ALL=\(ALL\)\s+ALL'
+    line: 'jenkins ALL=(ALL)   NOPASSWD: ALL'
+
+- name: Create Required Directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /jenkins_job_files
+    - /jenkins_job_files/my-nginx
+
+- name: Upload Jenkins Job Definition
+  copy:
+    src: "job.xml"
+    dest: "/jenkins_job_files/my-nginx/job.xml"
+
+- name: Download jenkins-cli.jar
+  become: yes
+  shell: "wget http://localhost:8080/jnlpJars/jenkins-cli.jar -P /jenkins_job_files/" 
+
+- name: Chmod to jar file
+  become: yes
+  shell: "chmod 754 /jenkins_job_files/jenkins-cli.jar"
+
+- name: Create jenkins jobs with xml files
+  become: yes
+  shell: "java -jar /jenkins_job_files/jenkins-cli.jar -s http://localhost:8080 -auth admin:{{ jenkinsAdminPass.stdout }} create-job my-nginx < /jenkins_job_files/my-nginx/job.xml"
+  with_items: 
+    - jenkins_jobs
